@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>LP Shopping Menus</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</head>
+<body>
+<h1>LP Shopping Menus</h1>
+
+<form method="post" id="lpForm">
+<label>Character Name: <input type="text" name="character" required></label><br>
+<label>Corporation: <input type="text" name="corporation" required></label><br>
+<label>Available LP: <input type="number" name="lp" required></label><br>
+<label>Max ISK: <input type="number" name="max_isk" required></label><br>
+<input type="submit" value="Generate Menus">
+</form>
+
+<div id="loading" style="display:none;">
+<p>Calculating menus... please wait around 3 minutes!</p>
+<div class="loader"></div>
+</div>
+
+{% if menus %}
+<h2>Generated Menus</h2>
+<div class="menus-container">
+{% for menu in menus %}
+<div class="menu">
+<h3>Menu {{ loop.index }}</h3>
+<p>Total LP: {{ menu|sum(attribute='lp') }}, Total ISK: {{ menu|sum(attribute='isk') }}</p>
+<table>
+<tr>
+<th>Item</th><th>Qty</th><th>LP</th><th>ISK</th>
+<th>Jita unit price</th><th>Market Value</th><th>Profit/LP</th>
+</tr>
+{% for item in menu %}
+<tr>
+<td>{{ item.name }}</td>
+<td>{{ item.quantity }}</td>
+<td>{{ item.lp }}</td>
+<td>{{ item.isk }}</td>
+<td>{{ item.unit_price_jita | round(2) }}</td>
+<td>{{ item.market_value | round(2) }}</td>
+<td>{{ item.profit_ratio | round(2) }}</td>
+</tr>
+{% if item.requirements %}
+<tr>
+<td colspan="7">
+<strong>Required Components:</strong>
+<ul>
+{% for req in item.requirements %}
+<li>{{ req.name }} x{{ req.quantity }} → {{ req.isk | round(2) }} ISK</li>
+{% endfor %}
+</ul>
+</td>
+</tr>
+{% endif %}
+{% endfor %}
+</table>
+</div>
+{% endfor %}
+</div>
+{% endif %}
+</body>
+</html>

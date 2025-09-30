@@ -1,0 +1,20 @@
+body { font-family: Arial, sans-serif; margin: 40px; }
+table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+th { background-color: #f2f2f2; }
+input[type=text], input[type=number] { padding: 5px; margin: 5px 0; }
+input[type=submit] { padding: 10px 20px; margin-top: 10px; }
+.menus-container { display: flex; flex-wrap: wrap; gap: 20px; }
+.menu { border: 1px solid #ccc; padding: 10px; flex: 1; min-width: 300px; }
+
+.loader {
+  border: 8px solid #f3f3f3;
+  border-top: 8px solid #555;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+  margin: 10px auto;
+}
+
+@keyframes spin { 0% { transform: rotate(0deg);} 100% { transform: rotate(360deg);} }
