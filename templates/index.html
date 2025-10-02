@@ -1,66 +1,108 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>LP Shopping Menus</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LP Menus</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+  <script defer src="{{ url_for('static', filename='js/script.js') }}"></script>
 </head>
 <body>
-<h1>LP Shopping Menus</h1>
+  <div class="container">
+    <header>
+      <h1>LP Shopping — Multiple Menus</h1>
+      <p class="hint">Generate up to 10 menus with different strategies. Wait around 3 minutes for full calculation.</p>
+    </header>
 
-<form method="post" id="lpForm">
-<label>Character Name: <input type="text" name="character" required></label><br>
-<label>Corporation: <input type="text" name="corporation" required></label><br>
-<label>Available LP: <input type="number" name="lp" required></label><br>
-<label>Max ISK: <input type="number" name="max_isk" required></label><br>
-<input type="submit" value="Generate Menus">
-</form>
+    <section class="form-block">
+      <form id="lpForm" method="post" autocomplete="off">
+        <div class="form-row">
+          <label for="character">Character</label>
+          <input id="character" name="character" type="text" required placeholder="Enter character name" />
+        </div>
+        <div class="form-row">
+          <label for="corporation">Corporation</label>
+          <input id="corporation" name="corporation" type="text" required placeholder="Enter corporation name" />
+        </div>
+        <div class="form-row">
+          <label for="lp">Available LP</label>
+          <input id="lp" name="lp" type="number" min="0" required placeholder="e.g. 100000" />
+        </div>
+        <div class="form-row">
+          <label for="max_isk">Max ISK</label>
+          <input id="max_isk" name="max_isk" type="number" min="0" required placeholder="e.g. 500000000" />
+        </div>
+        <button type="submit" class="btn-primary">Generate 10 menus</button>
+      </form>
+    </section>
 
-<div id="loading" style="display:none;">
-<p>Calculating menus... please wait around 3 minutes!</p>
-<div class="loader"></div>
-</div>
+    <div id="loading" class="loading hidden" role="alert" aria-live="assertive" aria-busy="true">
+      <div class="spinner" aria-hidden="true"></div>
+      <div class="loading-text">Calculating menus... Please wait around <strong>3 minutes</strong>.</div>
+    </div>
 
-{% if menus %}
-<h2>Generated Menus</h2>
-<div class="menus-container">
-{% for menu in menus %}
-<div class="menu">
-<h3>Menu {{ loop.index }}</h3>
-<p>Total LP: {{ menu|sum(attribute='lp') }}, Total ISK: {{ menu|sum(attribute='isk') }}</p>
-<table>
-<tr>
-<th>Item</th><th>Qty</th><th>LP</th><th>ISK</th>
-<th>Jita unit price</th><th>Market Value</th><th>Profit/LP</th>
-</tr>
-{% for item in menu %}
-<tr>
-<td>{{ item.name }}</td>
-<td>{{ item.quantity }}</td>
-<td>{{ item.lp }}</td>
-<td>{{ item.isk }}</td>
-<td>{{ item.unit_price_jita | round(2) }}</td>
-<td>{{ item.market_value | round(2) }}</td>
-<td>{{ item.profit_ratio | round(2) }}</td>
-</tr>
-{% if item.requirements %}
-<tr>
-<td colspan="7">
-<strong>Required Components:</strong>
-<ul>
-{% for req in item.requirements %}
-<li>{{ req.name }} x{{ req.quantity }} → {{ req.isk | round(2) }} ISK</li>
-{% endfor %}
-</ul>
-</td>
-</tr>
-{% endif %}
-{% endfor %}
-</table>
-</div>
-{% endfor %}
-</div>
-{% endif %}
+    {% if message %}
+      <div class="message" role="alert">{{ message }}</div>
+    {% endif %}
+
+    {% if menus %}
+    <section class="menus" aria-label="Generated menus">
+        
+        {% for menu in menus %}
+            <article class="menu-card" tabindex="0">
+                <h2>Menu {{ loop.index }}</h2>
+                <p class="summary">
+                    Items: {{ menu.menu_items|length }} — 
+                    Total LP: {{ menu.total_lp }} — 
+                    Total ISK: <span class="toggle-number" data-exact="{{ menu.total_isk }}">{{ menu.total_isk | format_compact }}</span> — 
+                    Profit total: <span class="toggle-number" data-exact="{{ menu.profit_total }}">{{ menu.profit_total | format_compact }}</span> — 
+                    Rentabilité (Profit / LP): {{ menu.rentability | round(4) }}
+                </p>
+                <div class="table-wrapper">
+                <table class="menu-table" summary="Details of menu {{ loop.index }}">
+                    <thead>
+                    <tr>
+                        <th scope="col">Item</th>
+                        <th scope="col">Qty</th>
+                        <th scope="col">LP</th>
+                        <th scope="col">ISK</th>
+                        <th scope="col">Jita/unit</th>
+                        <th scope="col">Market value</th>
+                        <th scope="col">Profit/LP</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for it in menu.menu_items %}
+                    <tr class="{{ 'bp' if it.is_blueprint else '' }}">
+                        <td class="toggle-number" data-exact="{{ it.name }}">{{ it.name | format_compact }}</td>
+                        <td class="toggle-number" data-exact="{{ it.quantity }}">{{ it.quantity | format_compact }}</td>
+                        <td class="toggle-number" data-exact="{{ it.lp }}">{{ it.lp | format_compact }}</td>
+                        <td class="toggle-number" data-exact="{{ it.isk }}">{{ it.isk | format_compact }}</td>
+                        <td class="toggle-number" data-exact="{{ it.unit_price_jita }}">{{ it.unit_price_jita | round(2) }}</td>
+                        <td class="toggle-number" data-exact="{{ it.market_value }}">{{ it.market_value | round(2) }}</td>
+                        <td class="toggle-number" data-exact="{{ it.profit_ratio }}">{{ it.profit_ratio | round(2) }}</td>
+                    </tr>
+                    {% if it.requirements %}
+                    <tr>
+                        <td colspan="7" class="requirements">
+                        <strong>Components:</strong>
+                        <ul>
+                            {% for r in it.requirements %}
+                            <li>{{ r.name }} x{{ r.quantity }} — LP: {{ r.lp }} — ISK: {{ r.isk | round(2) }}</li>
+                            {% endfor %}
+                        </ul>
+                        </td>
+                    </tr>
+                    {% endif %}
+                    {% endfor %}
+                    </tbody>
+                </table>
+                </div>
+            </article>
+            {% endfor %}
+    </section>
+    {% endif %}
+
+  </div>
 </body>
 </html>
