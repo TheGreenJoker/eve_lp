@@ -7,5 +7,5 @@ pip install -r requirements.txt
 
 ### run with
 ``` cmd
-python main.py
+python app.py
 ```
